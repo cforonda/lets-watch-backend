@@ -5,7 +5,7 @@ const http = require("http");
 const socketIo = require("socket.io");
 const path       = require('path');
 const config     = require(path.join(__dirname,"../config/global.json"));
-const port       = config.Server.settings.port;
+const port       = process.env.PORT || config.Server.settings.port;
 const app        = express();
 app.use(index);
 
