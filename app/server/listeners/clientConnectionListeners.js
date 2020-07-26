@@ -42,9 +42,17 @@ const addClientDisconnectListener = (socket, io) => {
     });
 }
 
+const addClientNicknameListener = (socket) => {
+    socket.on('update-nickname', nickname => {
+        console.log('retrieved a nickname!: ', nickname)
+        socket.nickname = nickname;
+    });
+}
+
 module.exports = {
     setupClientConnectionListeners: (socket, io) => {
         addNewClientConnectListener(socket, io);
+        addClientNicknameListener(socket);
         addNumClientsListener(socket, io);
         addClientDisconnectListener(socket, io);
     }    
