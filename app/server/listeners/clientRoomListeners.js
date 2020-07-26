@@ -6,8 +6,13 @@ const addClientRoomListener = (socket, io) => {
         try {
             socket.join(socketRoom);
             console.log(`user ${userNickname} has joined room: ${socketRoom}`);
+            
+            socket.emit('user-joined-room', {
+                message: `Welcome to the party ${userNickname}`
+            });
+
             io.to(socketRoom).emit('user-joined-room', {
-                message: `Welcome ${userNickname}, You have successfully joined room:${socketRoom}`
+                message: `Hey everyone! ${userNickname} just joined us in room:${socketRoom}`
             });
         } catch (e) {
             console.log(`user ${userNickname} failed to join ${socketRoom}.`);

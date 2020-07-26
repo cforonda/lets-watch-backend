@@ -1,5 +1,5 @@
 
-handleClientUpdate = (socket, io, event = '') => {
+handleClientUpdate = (io, socketRoom='community', event = '') => {
 
     // retrieve a list of all connected clients
     io.clients((error, clients) => {
@@ -13,7 +13,7 @@ handleClientUpdate = (socket, io, event = '') => {
         }
 
         // notify all users of the event
-        socket.broadcast.emit('updateClients', { 
+        io.to(socketRoom).emit('updateClients', { 
             message: event,
             numClients: clients.length
         });
@@ -22,17 +22,17 @@ handleClientUpdate = (socket, io, event = '') => {
 
 const addNewClientConnectListener = (socket, io) => {
     const event = 'New Client Connected!'
-    handleClientUpdate(socket, io, event);
+    handleClientUpdate(io, null, event);
 }
 
 const handleClientDisconnect = (socket, io) => {
     const event = 'Client Disconnected!'
-    handleClientUpdate(socket, io, event);
+    handleClientUpdate(io, null, event);
 }
 
 const addNumClientsListener = (socket, io) => {
-    socket.on('getNumClients', () => {
-        handleClientUpdate(socket, io);
+    socket.on('getNumClients', clientRoom => {
+        handleClientUpdate(io, clientRoom);
     });
 }
 
