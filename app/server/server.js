@@ -11,16 +11,31 @@ app.use(index);
 
 const server = http.createServer(app);
 const io = socketIo(server);
+let clients = 0;
+
 
 io.on('connection', socket => {
     console.log("New client connected");
+    clients++;
+    console.log('Number of connected clients: ' + clients);
 
-    socket.on('stream',function(data){
+    socket.broadcast.emit('newclientconnect',
+        { numClients: clients }
+    );
+
+    socket.on('stream', data => {
         socket.broadcast.emit('stream',data);
     });
 
+    socket.on('getNumClients', () => {
+        socket.broadcast.emit('newclientconnect', { numClients: clients });
+    })
+   
+
     socket.on("disconnect", () => {
       console.log("Client disconnected");
+      clients--;
+      console.log('Number of connected clients: ' + clients);
     });
 });
 
