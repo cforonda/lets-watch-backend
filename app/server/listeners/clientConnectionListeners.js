@@ -1,23 +1,20 @@
 
 handleClientUpdate = (io, socketRoom='community', event = '') => {
 
-    // retrieve a list of all connected clients
-    io.clients((error, clients) => {
-        if (error) throw error;
-
-        // notify the server if a client has connected/disconnected 
-        // and update the terminal
+    return new Promise((resolve, reject) => {
+        io.of('/').in(socketRoom).clients((error, clients) => {
+            resolve(clients);
+          });
+    }).then(clients => {
         if(event) {
             console.log(event);
-            console.log('Number of Connected Clients: ', clients.length);
         }
-
         // notify all users of the event
         io.to(socketRoom).emit('updateClients', { 
             message: event,
             numClients: clients.length
         });
-    });
+    })
 }
 
 const addNewClientConnectListener = (socket, io) => {
@@ -28,6 +25,7 @@ const addNewClientConnectListener = (socket, io) => {
 const handleClientDisconnect = (socket, io) => {
     const event = 'Client Disconnected!'
     handleClientUpdate(io, null, event);
+    socket.broadcast.emit('leave-room', socket.nickname);
 }
 
 const addNumClientsListener = (socket, io) => {
@@ -36,7 +34,7 @@ const addNumClientsListener = (socket, io) => {
     });
 }
 
-const addClientDisconnectListener = (socket, io) => {
+const addClientDisconnectListener = (socket, io, connectedClients) => {
     socket.on("disconnect", () => {
         handleClientDisconnect(socket, io);
     });
@@ -50,10 +48,10 @@ const addClientNicknameListener = (socket) => {
 }
 
 module.exports = {
-    setupClientConnectionListeners: (socket, io) => {
+    setupClientConnectionListeners: (socket, io, connectedClients) => {
         addNewClientConnectListener(socket, io);
         addClientNicknameListener(socket);
         addNumClientsListener(socket, io);
-        addClientDisconnectListener(socket, io);
+        addClientDisconnectListener(socket, io, connectedClients);
     }    
 }
