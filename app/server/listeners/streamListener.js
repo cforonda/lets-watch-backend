@@ -6,17 +6,23 @@ const app             = express();
 const server          = http.createServer(app);
 const io              = socketIo(server);
 
+const videos = {};
+
+const addStreamListener = (socket) => {
+    socket.on('stream', data => {
+        socket.broadcast.emit('stream',data);
+    });
+
+    io.of('/stream').clients((error, clients) => {
+        if (error) {
+            throw error;
+        }
+          console.log(clients);
+      });
+}
+
 module.exports = {
-    addStreamListener: socket => {
-        socket.on('stream', data => {
-            socket.broadcast.emit('stream',data);
-        });
-    
-        io.of('/stream').clients((error, clients) => {
-            if (error) {
-                throw error;
-            }
-              console.log(clients);
-          });
+    setupStreamListener: socket => {
+        addStreamListener(socket);
     }
 }

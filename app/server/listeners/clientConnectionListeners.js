@@ -1,57 +1,44 @@
+const util = require('../util/util');
 
-handleClientUpdate = (io, socketRoom='community', event = '') => {
+handleClientUpdate = (io, socketRoom='community', event = '', users) => {
+    if(event) {
+        console.log(event);
+    }
+    // notify all users of the event
+    io.to(socketRoom).emit('update-clients', { 
+        message: event,
+        numClients: util.getNumUsersInRoom(users, socketRoom)
+    });
+} 
 
-    return new Promise((resolve, reject) => {
-        io.of('/').in(socketRoom).clients((error, clients) => {
-            resolve(clients);
-          });
-    }).then(clients => {
-        if(event) {
-            console.log(event);
-        }
-        // notify all users of the event
-        io.to(socketRoom).emit('updateClients', { 
-            message: event,
-            numClients: clients.length
-        });
-    })
-}
-
-const addNewClientConnectListener = (socket, io) => {
+const addNewClientConnectListener = (socket, io, users) => {
     const event = 'New Client Connected!'
-    handleClientUpdate(io, null, event);
-}
+    handleClientUpdate(io, null, event, users);
+}  
 
-const handleClientDisconnect = (socket, io) => {
+
+const handleClientDisconnect = (socket, io, users) => { 
     const event = 'Client Disconnected!'
-    handleClientUpdate(io, null, event);
-    socket.broadcast.emit('leave-room', socket.nickname);
-}
-
-const addNumClientsListener = (socket, io) => {
-    socket.on('getNumClients', clientRoom => {
-        handleClientUpdate(io, clientRoom);
+    console.log(`user ${users[socket.id].user} has left room: ${users[socket.id].room}`);
+    io.to(users[socket.id].room).emit('user-left-room', {
+        message: `Hey everyone! ${users[socket.id].user} just left  ${users[socket.id].room}`
     });
+    const room = users[socket.id].room;
+    delete users[socket.id];
+    console.log('room:', room);
+    handleClientUpdate(io, room, event, users);
 }
 
-const addClientDisconnectListener = (socket, io, connectedClients) => {
+const addClientDisconnectListener = (socket, io, users) => {
     socket.on("disconnect", () => {
-        handleClientDisconnect(socket, io);
+        handleClientDisconnect(socket, io, users);
+        console.log('CONNECTED CLIENTS: ', users ); 
     });
-}
-
-const addClientNicknameListener = (socket) => {
-    socket.on('update-nickname', nickname => {
-        console.log('retrieved a nickname!: ', nickname)
-        socket.nickname = nickname;
-    });
-}
+}  
 
 module.exports = {
-    setupClientConnectionListeners: (socket, io, connectedClients) => {
-        addNewClientConnectListener(socket, io);
-        addClientNicknameListener(socket);
-        addNumClientsListener(socket, io);
-        addClientDisconnectListener(socket, io, connectedClients);
+    setupClientConnectionListeners: (socket, io, users) => {
+        addNewClientConnectListener(socket, io, users);
+        addClientDisconnectListener(socket, io, users);
     }    
 }
