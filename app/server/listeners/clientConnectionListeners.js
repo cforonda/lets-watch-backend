@@ -1,4 +1,5 @@
 const util = require('../util/util');
+const streamListener = require('./streamListener');
 
 handleClientUpdate = (io, socketRoom='community', event = '', users) => {
     if(event) {
@@ -9,7 +10,7 @@ handleClientUpdate = (io, socketRoom='community', event = '', users) => {
         message: event,
         numClients: util.getNumUsersInRoom(users, socketRoom)
     });
-} 
+}   
 
 const addNewClientConnectListener = (socket, io, users) => {
     const event = 'New Client Connected!'
@@ -25,8 +26,12 @@ const handleClientDisconnect = (socket, io, users) => {
     });
     const room = users[socket.id].room;
     delete users[socket.id];
-    console.log('room:', room);
     handleClientUpdate(io, room, event, users);
+
+    if(util.isRoomEmpty(users, room)) {
+        console.log(`room ${room} is empty!`);
+        streamListener.clearRoomQueue(room);
+    }
 }
 
 const addClientDisconnectListener = (socket, io, users) => {

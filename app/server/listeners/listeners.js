@@ -8,6 +8,6 @@ module.exports = {
     addSocketListeners: (socket, io) => {
         clientListeners.setupClientConnectionListeners(socket, io, users);
         clientUpdateListeners.setupClientUpdateListeners(socket, io, users);
-        streamListener.setupStreamListener(socket, users);
+        streamListener.setupStreamListener(socket, io, users);
     }
 }
