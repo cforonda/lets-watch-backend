@@ -32,12 +32,19 @@ const handleClientDisconnect = (socket, io, users) => {
         console.log(`room ${room} is empty!`);
         streamListener.clearRoomQueue(room);
     }
+    
+    
 }
 
 const addClientDisconnectListener = (socket, io, users) => {
     socket.on("disconnect", () => {
-        handleClientDisconnect(socket, io, users);
-        console.log('CONNECTED CLIENTS: ', users ); 
+        try {
+            handleClientDisconnect(socket, io, users);
+        } catch (error) {
+            console.log("There was an error handling client disconnect: Here is the message:", error.message);
+        } finally {
+            console.log('CONNECTED CLIENTS: ', users ); 
+        }
     });
 }  
 

@@ -17,7 +17,7 @@ const addStreamListener = (socket, io, users) => {
 
             // verify this video id is not already in this room's queue
             if(!videos[room].queue.includes(videoId)) {
-               videoRoom.queue.push(videoId);
+                videos[room].queue.push(videoId);
             } 
             
             // handle duplicate video
@@ -30,25 +30,34 @@ const addStreamListener = (socket, io, users) => {
         else {
             videos[room] = {queue: [videoId]}; 
         } 
-    } 
+    }  
 
     socket.on('add-video-to-server-queue', videoId => {
         console.log('recieved Stream message. Video Id:', videoId);
-        const room = users[socket.id].room;
-        handleRoomVideoQueueLogic(room, videoId);
+        try {
+            const room = users[socket.id].room;
+            handleRoomVideoQueueLogic(room, videoId);
 
-        if(videos[room].queue.length === 1) {
-            updateClientVideo(videoId);
-            startStreamingVideo(videoId)
+            if(videos[room].queue.length === 1) {
+                updateClientVideo(videoId);
+                startStreamingVideo(videoId)
+            }
+            console.log('server video queue:', videos);
+        } catch (error) {
+            console.log('There was an error adding a video to the queue. Here is the message: ', error.message);
         }
-        console.log('server video queue:', videos);
+        
     })  
  
     socket.on('video-end', () => {
-        videos.shift();
-        if(videos) {
-            updateClientVideo(videos[0]);
-            startStreamingVideo(videos[0]);
+        try {
+            videos.shift();
+            if(videos) {
+                updateClientVideo(videos[0]);
+                startStreamingVideo(videos[0]);
+            }
+        } catch(error) {
+            console.log('There was an error handling video-end. Here is the message:', error.message);
         }
     })
 
